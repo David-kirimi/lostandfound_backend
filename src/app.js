@@ -8,6 +8,7 @@ const deviceRoutes = require('./routes/deviceRoutes');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/admin');
 const alertRoutes = require('./routes/alertRoutes');
+const repairRoutes = require('./routes/repairRoutes');
 
 // Create express app FIRST
 const app = express();
@@ -54,6 +55,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/alerts', alertRoutes);
+app.use('/api/repairs', repairRoutes);
 
 // --- 404 HANDLER ---
 app.use((req, res) => {

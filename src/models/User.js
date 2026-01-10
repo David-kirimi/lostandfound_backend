@@ -27,13 +27,31 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin'],
+    enum: ['user', 'admin', 'technician'],
     default: 'user'
+  },
+  technicianDetails: {
+    rating: { type: Number, default: 0 },
+    numReviews: { type: Number, default: 0 },
+    isAvailable: { type: Boolean, default: false },
+    isPremium: { type: Boolean, default: false },
+    specialties: [String],
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number], // [lng, lat]
+        index: '2dsphere'
+      }
+    }
   }
 });
 
 // Pre-save hook to hash password before saving
-UserSchema.pre('save', async function(next) {
+UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     // Skip hashing if password hasn't changed
     return next();
@@ -45,7 +63,7 @@ UserSchema.pre('save', async function(next) {
 });
 
 // Method to compare entered password with hashed password
-UserSchema.methods.matchPassword = async function(enteredPassword) {
+UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
