@@ -111,11 +111,15 @@ exports.checkDeviceStatus = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
-        _id: device._id, // Required for contact form
-        contactEmail: device.contactEmail, // Useful for frontend logic (masked)
+        _id: device._id,
+        brand: device.brand,
+        model: device.model,
+        serialNumber: device.serialNumber,
+        contactEmail: device.contactEmail,
         status: device.status.toUpperCase(),
         description: device.description,
         imageBase64: device.imageBase64,
+        createdAt: device.createdAt,
         message: `Device with IMEI ${imei} is reported as ${device.status}.`
       }
     });

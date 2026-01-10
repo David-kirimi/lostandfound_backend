@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const DeviceSchema = new mongoose.Schema({
-  
+
   brand: {
     type: String,
     required: [true, 'Please add the device brand']
@@ -21,6 +21,7 @@ const DeviceSchema = new mongoose.Schema({
   },
   location: String,
   description: String,
+  imageBase64: String,
   status: {
     type: String,
     enum: ['lost', 'recovered'],
@@ -28,7 +29,7 @@ const DeviceSchema = new mongoose.Schema({
   },
   // NEW: Links this device report to a specific User for secure ownership tracking
   user: {
-    type: mongoose.Schema.ObjectId, 
+    type: mongoose.Schema.ObjectId,
     ref: 'User', // References the 'User' model
     required: true // Ensures only a logged-in user can report
   },
