@@ -22,14 +22,12 @@ router.route('/')
   .post(protect, reportDevice);
 
 // 3. Dynamic Routes (Must come last)
-router.route('/:imei')
-  .get(checkDeviceStatus)
-  .put(protect, updateDevice);
+router.route('/:id')
+  .put(protect, updateDevice)
+  .delete(protect, deleteDevice);
 
-
-// Add the delete route
-// Add the delete route
-router.delete('/:id', protect, deleteDevice);
+router.route('/check/:imei')
+  .get(checkDeviceStatus);
 
 // Secure Contact Route
 router.post('/:id/contact', contactOwner);
