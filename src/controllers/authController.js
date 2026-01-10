@@ -24,10 +24,8 @@ exports.register = async (req, res) => {
       password
     });
 
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully. Proceed to login.'
-    });
+    // 3. Send token for auto-login
+    sendTokenResponse(user, 201, res);
 
   } catch (err) {
     // Handle Mongoose validation errors (e.g., missing required fields)
