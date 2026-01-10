@@ -1,0 +1,13 @@
+### REPORT DEVICE (POST)
+# This is the request you must run.
+POST http://localhost:5000/api/devices  <-- Click the 'Send Request' link right here
+Content-Type: application/json
+
+{
+  "brand": "Google",
+  // ... rest of the body
+}
+
+### Test 3: Get All Reported Devices
+# This is the request you are accidentally running.
+GET http://localhost:5000/api/devices
