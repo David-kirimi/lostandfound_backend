@@ -77,7 +77,7 @@ app.use('/api/devices', deviceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/repairs', repairRoutes);
-app.use('/api/v1/technician', technicianRoutes);
+app.use('/api/technician', technicianRoutes);
 app.use('/api/v1/chat', chatRoutes);
 app.use('/api/v1/devices', deviceRoutes);
 app.use('/api/v1/repairs', repairRoutes);
