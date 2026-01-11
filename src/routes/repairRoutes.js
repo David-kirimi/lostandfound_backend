@@ -5,7 +5,8 @@ const {
     getMyRepairs,
     getAvailableJobs,
     acceptJob,
-    rateTechnician
+    rateTechnician,
+    getMyJobs // Added getMyJobs
 } = require('../controllers/repairController');
 const { estimatePrice } = require('../controllers/priceController');
 
@@ -21,6 +22,11 @@ router
 router
     .route('/my')
     .get(getMyRepairs);
+
+// Added my-jobs route
+router
+    .route('/my-jobs')
+    .get(getMyJobs);
 
 router
     .route('/estimate-price')
