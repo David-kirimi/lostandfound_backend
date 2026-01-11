@@ -6,6 +6,7 @@ const {
     getAvailableJobs,
     acceptJob
 } = require('../controllers/repairController');
+const { estimatePrice } = require('../controllers/priceController');
 
 const { protect, authorize } = require('../middleware/auth');
 
@@ -19,6 +20,10 @@ router
 router
     .route('/my')
     .get(getMyRepairs);
+
+router
+    .route('/estimate-price')
+    .get(estimatePrice);
 
 router
     .route('/available')
