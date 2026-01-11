@@ -1,7 +1,63 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-// @desc    Fetch repair part price from external vendors
+// Helper to fetch price from Dama Mobile Spares
+const fetchDamaPrice = async (searchTerm) => {
+    try {
+        const searchUrl = `https://damamobilespares.co.ke/?s=${encodeURIComponent(searchTerm)}&post_type=product`;
+        const response = await axios.get(searchUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            timeout: 8000
+        });
+
+        const $ = cheerio.load(response.data);
+        let price = 0;
+
+        // Try different selectors for WooCommerce prices
+        // Price element in list view or single product view
+        const priceElement = $('.price ins .amount').first().text() || $('.price .amount').first().text() || $('.woocommerce-Price-amount').first().text();
+
+        if (priceElement) {
+            const priceText = priceElement.replace(/[^0-9]/g, '');
+            price = parseInt(priceText) || 0;
+        }
+        return price;
+    } catch (err) {
+        console.error('Dama fetch error:', err.message);
+        return 0;
+    }
+};
+
+// Helper to fetch price from Mobitop
+const fetchMobitopPrice = async (searchTerm) => {
+    try {
+        const searchUrl = `https://mobitop.co.ke/?s=${encodeURIComponent(searchTerm)}&post_type=product`;
+        const response = await axios.get(searchUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            timeout: 8000
+        });
+
+        const $ = cheerio.load(response.data);
+        let price = 0;
+
+        const priceElement = $('.price ins .amount').first().text() || $('.price .amount').first().text() || $('.woocommerce-Price-amount').first().text();
+
+        if (priceElement) {
+            const priceText = priceElement.replace(/[^0-9]/g, '');
+            price = parseInt(priceText) || 0;
+        }
+        return price;
+    } catch (err) {
+        console.error('Mobitop fetch error:', err.message);
+        return 0;
+    }
+};
+
+// @desc    Fetch repair part price from external vendors and average them
 // @route   GET /api/repairs/estimate-price
 // @access  Private
 exports.estimatePrice = async (req, res) => {
@@ -21,55 +77,51 @@ exports.estimatePrice = async (req, res) => {
             'Software': 'Software'
         };
 
-        const searchTerm = `${brand} ${model} ${issueMap[issue] || issue}`;
-        const searchUrl = `https://damamobilespares.co.ke/?s=${encodeURIComponent(searchTerm)}&post_type=product`;
+        const searchTermFull = `${brand} ${model} ${issueMap[issue] || issue}`;
 
-        const response = await axios.get(searchUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
-        });
+        // Fetch from both sites concurrently
+        const [damaPrice, mobiPrice] = await Promise.all([
+            fetchDamaPrice(searchTermFull),
+            fetchMobitopPrice(searchTermFull)
+        ]);
 
-        const $ = cheerio.cheerio.load(response.data);
         let partPrice = 0;
+        const prices = [damaPrice, mobiPrice].filter(p => p > 0);
 
-        // Try to find the price of the first product in the search results
-        // Standard WooCommerce layout for prices
-        const priceElement = $('.price ins .amount').first() || $('.price .amount').first();
-        if (priceElement.length > 0) {
-            const priceText = priceElement.text().replace(/[^0-9]/g, '');
-            partPrice = parseInt(priceText) || 0;
+        if (prices.length > 0) {
+            // Calculate average
+            partPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
         }
 
-        // If not found, fallback to a base price logic or try another site
+        // If still 0, use fallback base prices (KES) to ensure user never sees 0
         if (partPrice === 0) {
-            // Fallback base prices (KES)
             const fallbackPrices = {
-                'Screen': 3000,
-                'Battery': 1500,
-                'Charging': 1000,
-                'Water': 2000,
-                'Software': 1000
+                'Screen': 3800,
+                'Battery': 1900,
+                'Charging': 1300,
+                'Water': 2800,
+                'Software': 1200
             };
-            partPrice = fallbackPrices[issue] || 1000;
+            partPrice = fallbackPrices[issue] || 1500;
         }
 
         // Service fee (Technician labor)
-        // Calculating total as Part Price + Technician Labor (30% of part price, with a minimum floor)
-        const laborRate = 0.30; // 30% labor commission
-        const minLabor = 1000; // Minimum KES for labor
+        // Calculating total as Part Price + Technician Labor (30% of part price)
+        const laborRate = 0.35; // Slightly higher to cover business costs
+        const minLabor = 1500;
         const calculatedLabor = Math.max(partPrice * laborRate, minLabor);
 
         const serviceFee = Math.round(calculatedLabor);
-        const totalPrice = partPrice + serviceFee;
+        const totalPrice = Math.round(partPrice + serviceFee);
 
         res.status(200).json({
             success: true,
-            partPrice,
+            partPrice: Math.round(partPrice),
             serviceFee,
             totalPrice,
             currency: 'KES',
-            estimatedTime: '2-4 Hours'
+            estimatedTime: '2-4 Hours',
+            sources: prices.length
         });
     } catch (err) {
         console.error('Price estimation error:', err);
