@@ -34,7 +34,14 @@ const UserSchema = new mongoose.Schema({
     rating: { type: Number, default: 0 },
     numReviews: { type: Number, default: 0 },
     isAvailable: { type: Boolean, default: false },
-    isPremium: { type: Boolean, default: false },
+    tier: {
+      type: String,
+      enum: ['Free', 'Premium'],
+      default: 'Free'
+    },
+    totalRepairs: { type: Number, default: 0 },
+    lastActive: { type: Date, default: Date.now },
+    experience: { type: Number, default: 0 }, // Years or completed jobs count
     specialties: [String],
     location: {
       type: {

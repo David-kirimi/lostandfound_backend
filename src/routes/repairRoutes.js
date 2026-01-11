@@ -4,7 +4,8 @@ const {
     createRepair,
     getMyRepairs,
     getAvailableJobs,
-    acceptJob
+    acceptJob,
+    rateTechnician
 } = require('../controllers/repairController');
 const { estimatePrice } = require('../controllers/priceController');
 

@@ -53,14 +53,35 @@ const RepairSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Pending', 'Accepted', 'In Progress', 'Completed', 'Cancelled'],
-        default: 'Pending'
+        enum: ['Finding Technician', 'Matched', 'On Transit', 'Getting Repaired', 'Ready for Delivery', 'Completed', 'Cancelled'],
+        default: 'Finding Technician'
+    },
+    shippingMethod: {
+        type: String,
+        enum: ['Carry-in', 'Shipping'],
+        default: 'Carry-in'
     },
     paymentStatus: {
         type: String,
         enum: ['Pending', 'Paid'],
         default: 'Pending'
     },
+    disbursementStatus: {
+        type: String,
+        enum: ['Held', 'Disbursed'],
+        default: 'Held'
+    },
+    technicianRating: {
+        type: Number,
+        min: 1,
+        max: 5
+    },
+    customerReview: String,
+    transportationCost: {
+        type: Number,
+        default: 0
+    },
+    scheduledTime: Date,
     commissionCut: {
         type: Number,
         default: 0.15 // 15% system fee
