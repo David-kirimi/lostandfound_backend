@@ -41,7 +41,7 @@ const UserSchema = new mongoose.Schema({
     },
     totalRepairs: { type: Number, default: 0 },
     lastActive: { type: Date, default: Date.now },
-    experience: { type: Number, default: 0 }, // Years or completed jobs count
+    experience: { type: Number, default: 0 },
     specialties: [String],
     location: {
       type: {
@@ -54,6 +54,40 @@ const UserSchema = new mongoose.Schema({
         index: '2dsphere'
       }
     }
+  },
+  technicianVerification: {
+    status: {
+      type: String,
+      enum: ['Not Applied', 'Pending', 'Approved', 'Rejected'],
+      default: 'Not Applied'
+    },
+    idType: {
+      type: String,
+      enum: ['Passport', 'National ID', 'Drivers License']
+    },
+    idNumber: String, // Encrypted in production
+    legalName: String,
+    dateOfBirth: Date,
+    profilePhoto: String, // Base64
+    shopName: String,
+    shopAddress: String,
+    shopCoordinates: {
+      type: {
+        type: String,
+        enum: ['Point']
+      },
+      coordinates: [Number] // [lng, lat]
+    },
+    registrationDocument: String, // Base64
+    taxDocument: String, // Base64
+    additionalDocuments: [String], // Array of Base64
+    submittedAt: Date,
+    reviewedAt: Date,
+    reviewedBy: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
+    },
+    rejectionReason: String
   }
 });
 

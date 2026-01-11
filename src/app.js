@@ -10,6 +10,7 @@ const adminRoutes = require('./routes/admin');
 const alertRoutes = require('./routes/alertRoutes');
 const repairRoutes = require('./routes/repairRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const technicianRoutes = require('./routes/technicianRoutes');
 
 // Create express app FIRST
 const app = express();
