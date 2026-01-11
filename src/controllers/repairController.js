@@ -31,6 +31,23 @@ exports.createRepair = async (req, res) => {
 exports.getMyRepairs = async (req, res) => {
     try {
         const repairs = await Repair.find({ user: req.user.id }).sort('-createdAt');
+        res.status(200).json({
+            success: true,
+            data: repairs
+        });
+    } catch (err) {
+        res.status(400).json({ success: false, error: err.message });
+    }
+};
+
+// @desc    Get all jobs assigned to the logged-in technician
+// @route   GET /api/repairs/my-jobs  
+// @access  Private (Technician)
+exports.getMyJobs = async (req, res) => {
+    try {
+        const repairs = await Repair.find({ technician: req.user.id })
+            .populate('user', 'name email')
+            .sort('-createdAt');
 
         res.status(200).json({
             success: true,
@@ -41,29 +58,25 @@ exports.getMyRepairs = async (req, res) => {
     }
 };
 
-// @desc    Get available jobs for technicians based on location
+// @desc    Get all available jobs for technicians
 // @route   GET /api/repairs/available
-// @access  Private (Technician only)
+// @access  Private (Technician)
 exports.getAvailableJobs = async (req, res) => {
     try {
-        // Basic logic: find pending jobs near the technician
-        // (Actual geo-spatial query would go here)
-        const jobs = await Repair.find({
-            status: 'Pending',
-            technician: { $exists: false }
-        }).sort('-createdAt');
-
+        const repairs = await Repair.find({ status: 'Finding Technician' })
+            .populate('user', 'name email')
+            .sort('-createdAt');
         res.status(200).json({
             success: true,
-            data: jobs
+            data: repairs
         });
     } catch (err) {
         res.status(400).json({ success: false, error: err.message });
     }
 };
 
-// @desc    Accept repair job
-// @route   PUT /api/v1/repairs/:id/accept
+// @desc    Accept a repair job
+// @route   PUT /api/repairs/:id/accept
 // @access  Private (Technician)
 exports.acceptJob = async (req, res) => {
     try {
@@ -73,13 +86,15 @@ exports.acceptJob = async (req, res) => {
             return res.status(404).json({ success: false, error: 'Repair not found' });
         }
 
-        // Check if already accepted
-        if (repair.technician) {
-            return res.status(400).json({ success: false, error: 'Job already accepted' });
+        if (repair.status !== 'Finding Technician') {
+            return res.status(400).json({ success: false, error: 'This repair has already been claimed' });
         }
 
-        // Calculate a placeholder transportation cost if 'Shipping'
-        const transportationCost = repair.shippingMethod === 'Shipping' ? 500 : 0;
+        // Calculate transportation cost if shipping
+        let transportationCost = 0;
+        if (repair.shippingMethod === 'Shipping') {
+            transportationCost = 500; // Placeholder
+        }
 
         repair = await Repair.findByIdAndUpdate(req.params.id, {
             technician: req.user.id,
@@ -97,9 +112,9 @@ exports.acceptJob = async (req, res) => {
     }
 };
 
-// @desc    Rate technician
-// @route   PUT /api/v1/repairs/:id/rate
-// @access  Private (User)
+// @desc    Rate a technician after job completion
+// @route   PUT /api/repairs/:id/rate
+// @access  Private
 exports.rateTechnician = async (req, res) => {
     try {
         const { rating, review } = req.body;
@@ -118,7 +133,6 @@ exports.rateTechnician = async (req, res) => {
         await repair.save();
 
         // Update technician average rating
-        const User = require('../models/User');
         const technician = await User.findById(repair.technician);
         if (technician) {
             const totalRatings = technician.technicianDetails.rating * technician.technicianDetails.numReviews;
@@ -136,27 +150,18 @@ exports.rateTechnician = async (req, res) => {
     }
 };
 
-// @desc    Find available technicians (Internal matching logic)
-exports.matchTechnicians = async (repairId) => {
-    const Repair = require('../models/Repair');
-    const User = require('../models/User');
-
-    const repair = await Repair.findById(repairId);
-    if (!repair) return;
-
-    // Filter available technicians, prioritize Premium tier and Rating
+// Helper: Match technicians (priority-based)
+const matchTechnicians = async (repair) => {
     const technicians = await User.find({
         role: 'technician',
         'technicianDetails.isAvailable': true
-    }).sort({
-        'technicianDetails.tier': -1, // Premium first (if alphabetized Z-A or similar logic, but we'll use manual sort if needed)
-        'technicianDetails.rating': -1
-    });
+    }).sort({ 'technicianDetails.tier': -1, 'technicianDetails.rating': -1 });
 
-    // In a production app, we would use GeoJSON for location matching:
+    // Future: GeoJSON location matching
     // const technicians = await User.find({
     //   role: 'technician',
-    //   'technicianDetails.location': {
+    //   'technicianDetails.isAvailable': true,
+    //   'technicianDetails.location.coordinates': {
     //      $near: { $geometry: { type: "Point", coordinates: repair.location.coordinates }, $maxDistance: 10000 }
     //   }
     // });
