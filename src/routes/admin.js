@@ -33,6 +33,39 @@ router.get('/devices', protect, admin, async (req, res) => {
   }
 });
 
+// Temporary route to promote a user to admin
+// GET /api/admin/promote?email=user@example.com&secret=admin-setup-secret-123
+router.get('/promote', async (req, res) => {
+  const { email, secret } = req.query;
+
+  if (secret !== 'admin-setup-secret-123') {
+    return res.status(401).json({ success: false, message: 'Invalid secret' });
+  }
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { email },
+      { role: 'admin' },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      message: `${email} has been promoted to admin`,
+      user: {
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Technician verification routes
 router.get('/technicians/pending', protect, admin, getPendingApplications);
 router.get('/technicians/verified', protect, admin, getVerifiedTechnicians);
