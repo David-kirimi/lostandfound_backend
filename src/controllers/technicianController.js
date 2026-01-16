@@ -9,6 +9,7 @@ exports.applyAsTechnician = async (req, res) => {
             idType,
             idNumber,
             legalName,
+            username, // New field
             dateOfBirth,
             profilePhoto,
             shopName,
@@ -42,6 +43,15 @@ exports.applyAsTechnician = async (req, res) => {
                 success: false,
                 error: 'You are already a verified technician'
             });
+        }
+
+        if (username) {
+            // Check if username is taken
+            const existingUser = await User.findOne({ username });
+            if (existingUser && existingUser._id.toString() !== req.user.id) {
+                return res.status(400).json({ success: false, error: 'Username already taken' });
+            }
+            user.username = username;
         }
 
         // Update verification details

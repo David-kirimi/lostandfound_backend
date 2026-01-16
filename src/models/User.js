@@ -6,6 +6,12 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please add a name']
   },
+  username: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows null/undefined values to duplicate (for existing users)
+    trim: true
+  },
   email: {
     type: String,
     required: [true, 'Please add an email'],

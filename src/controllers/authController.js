@@ -70,11 +70,14 @@ exports.login = async (req, res) => {
 
     // 1. Validate email and password presence
     if (!email || !password) {
-      return res.status(400).json({ success: false, error: 'Please provide an email and password' });
+      return res.status(400).json({ success: false, error: 'Please provide an email/username and password' });
     }
 
     // 2. Check for user (must select the password field we blocked earlier)
-    const user = await User.findOne({ email }).select('+password');
+    // Allow login with email OR username
+    const user = await User.findOne({
+      $or: [{ email: email }, { username: email }]
+    }).select('+password');
 
     if (!user) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
