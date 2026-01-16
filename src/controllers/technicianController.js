@@ -8,6 +8,7 @@ exports.applyAsTechnician = async (req, res) => {
         const {
             idType,
             idNumber,
+            idDocument, // Added field
             legalName,
             username, // New field
             dateOfBirth,
@@ -61,6 +62,7 @@ exports.applyAsTechnician = async (req, res) => {
             idNumber,
             legalName,
             dateOfBirth: new Date(dateOfBirth),
+            idDocument, // Added to storage
             profilePhoto,
             shopName,
             shopAddress,

@@ -74,6 +74,7 @@ const UserSchema = new mongoose.Schema({
     idNumber: String, // Encrypted in production
     legalName: String,
     dateOfBirth: Date,
+    idDocument: String, // Base64 PDF
     profilePhoto: String, // Base64
     shopName: String,
     shopAddress: String,
