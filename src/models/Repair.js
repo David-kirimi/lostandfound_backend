@@ -63,9 +63,10 @@ const RepairSchema = new mongoose.Schema({
     },
     paymentStatus: {
         type: String,
-        enum: ['Pending', 'Paid'],
+        enum: ['Pending', 'Verification Pending', 'Paid'],
         default: 'Pending'
     },
+    paymentTxMessage: String, // User's pasted M-Pesa message
     disbursementStatus: {
         type: String,
         enum: ['Held', 'Disbursed'],

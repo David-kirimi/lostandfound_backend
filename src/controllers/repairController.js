@@ -177,10 +177,17 @@ exports.payForRepair = async (req, res) => {
             return res.status(400).json({ success: false, error: 'Repair already paid for' });
         }
 
-        // --- PAYMENT MOCK PROCESSING ---
-        // In real life, verify Stripe/MPesa transaction here
+        const { transactionMessage } = req.body;
 
-        repair.paymentStatus = 'Paid';
+        if (transactionMessage) {
+            // Manual Verification Flow
+            repair.paymentStatus = 'Verification Pending';
+            repair.paymentTxMessage = transactionMessage;
+        } else {
+            // Instant Mock Payment (keep for testing or if no msg provided)
+            repair.paymentStatus = 'Paid';
+        }
+
         repair.disbursementStatus = 'Held'; // Held until job completion
         await repair.save();
 
