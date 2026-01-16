@@ -90,6 +90,14 @@ exports.acceptJob = async (req, res) => {
             return res.status(400).json({ success: false, error: 'This repair has already been claimed' });
         }
 
+        // Verify technician status
+        if (req.user.technicianVerification?.status !== 'Approved') {
+            return res.status(403).json({
+                success: false,
+                error: 'You must be a verified technician to accept jobs.'
+            });
+        }
+
         // Calculate transportation cost if shipping
         let transportationCost = 0;
         if (repair.shippingMethod === 'Shipping') {

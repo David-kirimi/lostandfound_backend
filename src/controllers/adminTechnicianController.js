@@ -118,3 +118,30 @@ exports.getVerifiedTechnicians = async (req, res) => {
         res.status(400).json({ success: false, error: err.message });
     }
 };
+
+// @desc    Update technician details
+// @route   PUT /api/v1/admin/technicians/:id
+// @access  Private/Admin
+exports.updateTechnicianDetails = async (req, res) => {
+    try {
+        const { rating, tier, isAvailable } = req.body;
+        const user = await User.findById(req.params.id);
+
+        if (!user || user.role !== 'technician') {
+            return res.status(404).json({ success: false, error: 'Technician not found' });
+        }
+
+        if (rating !== undefined) user.technicianDetails.rating = rating;
+        if (tier !== undefined) user.technicianDetails.tier = tier;
+        if (isAvailable !== undefined) user.technicianDetails.isAvailable = isAvailable;
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            data: user
+        });
+    } catch (err) {
+        res.status(400).json({ success: false, error: err.message });
+    }
+};

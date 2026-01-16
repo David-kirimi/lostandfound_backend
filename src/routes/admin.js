@@ -8,7 +8,8 @@ const {
   getPendingApplications,
   approveApplication,
   rejectApplication,
-  getVerifiedTechnicians
+  getVerifiedTechnicians,
+  updateTechnicianDetails
 } = require('../controllers/adminTechnicianController');
 
 // GET /api/admin/devices
@@ -35,5 +36,6 @@ router.get('/technicians/pending', protect, admin, getPendingApplications);
 router.get('/technicians/verified', protect, admin, getVerifiedTechnicians);
 router.put('/technicians/:id/approve', protect, admin, approveApplication);
 router.put('/technicians/:id/reject', protect, admin, rejectApplication);
+router.put('/technicians/:id', protect, admin, updateTechnicianDetails);
 
 module.exports = router;
