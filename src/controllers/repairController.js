@@ -158,21 +158,48 @@ exports.rateTechnician = async (req, res) => {
     }
 };
 
+// @desc    Pay for a repair (Mock Payment)
+// @route   PUT /api/repairs/:id/pay
+// @access  Private
+exports.payForRepair = async (req, res) => {
+    try {
+        let repair = await Repair.findById(req.params.id);
+
+        if (!repair) {
+            return res.status(404).json({ success: false, error: 'Repair not found' });
+        }
+
+        if (repair.user.toString() !== req.user.id) {
+            return res.status(401).json({ success: false, error: 'Not authorized' });
+        }
+
+        if (repair.paymentStatus === 'Paid') {
+            return res.status(400).json({ success: false, error: 'Repair already paid for' });
+        }
+
+        // --- PAYMENT MOCK PROCESSING ---
+        // In real life, verify Stripe/MPesa transaction here
+
+        repair.paymentStatus = 'Paid';
+        repair.disbursementStatus = 'Held'; // Held until job completion
+        await repair.save();
+
+        res.status(200).json({
+            success: true,
+            data: repair,
+            message: 'Payment successful'
+        });
+    } catch (err) {
+        res.status(400).json({ success: false, error: err.message });
+    }
+};
+
 // Helper: Match technicians (priority-based)
 const matchTechnicians = async (repair) => {
     const technicians = await User.find({
         role: 'technician',
         'technicianDetails.isAvailable': true
     }).sort({ 'technicianDetails.tier': -1, 'technicianDetails.rating': -1 });
-
-    // Future: GeoJSON location matching
-    // const technicians = await User.find({
-    //   role: 'technician',
-    //   'technicianDetails.isAvailable': true,
-    //   'technicianDetails.location.coordinates': {
-    //      $near: { $geometry: { type: "Point", coordinates: repair.location.coordinates }, $maxDistance: 10000 }
-    //   }
-    // });
 
     return technicians;
 };

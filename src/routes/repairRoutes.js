@@ -6,7 +6,8 @@ const {
     getAvailableJobs,
     acceptJob,
     rateTechnician,
-    getMyJobs // Added getMyJobs
+    getMyJobs,
+    payForRepair
 } = require('../controllers/repairController');
 const { estimatePrice } = require('../controllers/priceController');
 
@@ -39,5 +40,13 @@ router
 router
     .route('/:id/accept')
     .put(authorize('technician', 'admin'), acceptJob);
+
+router
+    .route('/:id/rate')
+    .put(rateTechnician);
+
+router
+    .route('/:id/pay')
+    .put(payForRepair);
 
 module.exports = router;
