@@ -95,7 +95,9 @@ const UserSchema = new mongoose.Schema({
       ref: 'User'
     },
     rejectionReason: String
-  }
+  },
+  resetPasswordOtp: String,
+  resetPasswordExpire: Date
 });
 
 // Pre-save hook to hash password before saving

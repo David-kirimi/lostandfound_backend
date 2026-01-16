@@ -99,3 +99,108 @@ exports.login = async (req, res) => {
     res.status(500).json({ success: false, error: 'Server Error during login' });
   }
 };
+
+const sendEmail = require('../utils/sendEmail');
+const crypto = require('crypto');
+
+// @desc    Forgot Password
+// @route   POST /api/auth/forgotpassword
+// @access  Public
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Set OTP and expiration (10 minutes)
+    user.resetPasswordOtp = otp;
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+    await user.save({ validateBeforeSave: false });
+
+    // Create email message
+    const message = `
+      <h1>Password Reset Request</h1>
+      <p>Your password reset code is:</p>
+      <h2 style="font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #3b82f6;">${otp}</h2>
+      <p>This code expires in 10 minutes.</p>
+    `;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Password Reset OTP - IMEIGuard',
+        html: message
+      });
+
+      res.status(200).json({ success: true, data: 'Email sent' });
+    } catch (err) {
+      user.resetPasswordOtp = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+      return res.status(500).json({ success: false, error: 'Email could not be sent' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// @desc    Verify OTP
+// @route   POST /api/auth/verifyotp
+// @access  Public
+exports.verifyResetOtp = async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    const user = await User.findOne({
+      email,
+      resetPasswordOtp: otp,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, error: 'Invalid or expired OTP' });
+    }
+
+    res.status(200).json({ success: true, data: 'OTP verified' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// @desc    Reset Password
+// @route   PUT /api/auth/resetpassword
+// @access  Public
+exports.resetPassword = async (req, res) => {
+  const { email, otp, password } = req.body;
+
+  try {
+    const user = await User.findOne({
+      email,
+      resetPasswordOtp: otp,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, error: 'Invalid or expired Token' });
+    }
+
+    // Set new password
+    user.password = password;
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
