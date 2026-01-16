@@ -1,9 +1,11 @@
+```javascript
 const express = require('express');
 const router = express.Router();
 
 const Device = require('../models/devices');
-const { protect } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 const admin = require('../middleware/admin');
+const User = require('../models/User'); // Import User model
 const {
   getPendingApplications,
   approveApplication,
