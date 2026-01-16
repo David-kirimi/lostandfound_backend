@@ -13,6 +13,13 @@ const {
   getVerifiedTechnicians,
   updateTechnicianDetails
 } = require('../controllers/adminTechnicianController');
+const {
+  getAllRepairs,
+  verifyPayment,
+  cancelPayment,
+  getEscrowStats
+} = require('../controllers/adminController');
+
 
 // GET /api/admin/devices
 router.get('/devices', protect, admin, async (req, res) => {
@@ -72,5 +79,11 @@ router.get('/technicians/verified', protect, admin, getVerifiedTechnicians);
 router.put('/technicians/:id/approve', protect, admin, approveApplication);
 router.put('/technicians/:id/reject', protect, admin, rejectApplication);
 router.put('/technicians/:id', protect, admin, updateTechnicianDetails);
+
+// Repair and Payment Management
+router.get('/repairs', protect, admin, getAllRepairs);
+router.put('/repairs/:id/verify-payment', protect, admin, verifyPayment);
+router.put('/repairs/:id/cancel-payment', protect, admin, cancelPayment);
+router.get('/escrow-stats', protect, admin, getEscrowStats);
 
 module.exports = router;
