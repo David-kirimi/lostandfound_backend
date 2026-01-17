@@ -63,7 +63,10 @@ exports.getMyJobs = async (req, res) => {
 // @access  Private (Technician)
 exports.getAvailableJobs = async (req, res) => {
     try {
-        const repairs = await Repair.find({ status: 'Finding Technician' })
+        const repairs = await Repair.find({
+            status: 'Finding Technician',
+            paymentStatus: 'Paid'
+        })
             .populate('user', 'name email')
             .sort('-createdAt');
         res.status(200).json({

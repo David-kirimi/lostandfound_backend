@@ -107,7 +107,7 @@ exports.getVerifiedTechnicians = async (req, res) => {
         const technicians = await User.find({
             role: 'technician',
             'technicianVerification.status': 'Approved'
-        }).select('name email technicianDetails technicianVerification');
+        }).select('name email technicianDetails technicianVerification.status technicianVerification.legalName technicianVerification.shopName technicianVerification.shopAddress technicianVerification.submittedAt');
 
         res.status(200).json({
             success: true,
