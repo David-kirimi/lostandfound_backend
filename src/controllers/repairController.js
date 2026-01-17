@@ -10,8 +10,14 @@ exports.createRepair = async (req, res) => {
         // For now, we'll use a placeholder or trust the frontend calculation
         // with a sanity check.
 
+        const repairData = { ...req.body };
+        if (repairData.address && !repairData.location?.address) {
+            repairData.location = repairData.location || { type: 'Point', coordinates: [] };
+            repairData.location.address = repairData.address;
+        }
+
         const repair = await Repair.create({
-            ...req.body,
+            ...repairData,
             user: req.user.id,
             status: 'Finding Technician'
         });
