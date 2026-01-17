@@ -72,7 +72,7 @@ exports.getMyJobs = async (req, res) => {
 exports.getAvailableJobs = async (req, res) => {
     try {
         const repairs = await Repair.find({
-            status: 'Finding Technician',
+            status: { $in: ['Finding Technician', 'Pending'] },
             paymentStatus: 'Paid'
         })
             .populate('user', 'name email')

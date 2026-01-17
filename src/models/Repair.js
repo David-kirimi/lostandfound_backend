@@ -53,7 +53,7 @@ const RepairSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Finding Technician', 'Matched', 'On Transit', 'Getting Repaired', 'Ready for Delivery', 'Completed', 'Cancelled'],
+        enum: ['Pending', 'Finding Technician', 'Matched', 'On Transit', 'Getting Repaired', 'Ready for Delivery', 'Completed', 'Cancelled'],
         default: 'Finding Technician'
     },
     shippingMethod: {
