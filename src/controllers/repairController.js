@@ -36,7 +36,9 @@ exports.createRepair = async (req, res) => {
 // @access  Private
 exports.getMyRepairs = async (req, res) => {
     try {
-        const repairs = await Repair.find({ user: req.user.id }).sort('-createdAt');
+        const repairs = await Repair.find({ user: req.user.id })
+            .populate('technician', 'name email technicianDetails')
+            .sort('-createdAt');
         res.status(200).json({
             success: true,
             data: repairs
